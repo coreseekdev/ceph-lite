@@ -1,3 +1,25 @@
+# Ceph-List 轻量化的 Ceph
+
+Ceph 在软件定义存储领域是一个伟大的项目。随着时间的演进，其架构渐渐老化，不适合现代的发展需要。表现为，
+
+1. 其特有的对象存储、块设备存储、文件系统三层的设计导致架构过分复杂，大幅度提升了作为组件复用的可能。
+2. 额外的基于 mon 的协调机制，导致 osd 模块的依赖关系不理想。
+3. 基于 Boost 的 Async IO 将处理逻辑分解为多个类，导致操作逻辑分散在多个类中，难以维护。
+4. 基于 Crush 的路由方法虽然保障了性能和可扩展性，但是过于死板，导致整个系统无法适应非数据中心(典型的，边缘计算场景)下的存储需求
+5. 在代码设计中，将控制平面的逻辑与数据平面的逻辑相混合，导致难于优化。典型的表现是当 RBD 启用 Journal 后，在 OSD 层面存在两倍以上的写入放大；
+
+## 项目目标
+
+提供一个轻量级的，最小化的对象存储系统。
+
+1. 缩减项目规模，去掉项目中， mgr 和 mds 模块（及其依赖的更上层模块）， 仅保留 osd 及其他基础模块
+2. 移除 osd 到 mon 的依赖关系，引入类似区块链的技术用于进行元数据管理
+3. 在兼容原有 Crush 算法的情况下，允许第三方应用系统定制  Placement Group 的处理逻辑
+4. 尝试移除 rocksdb， 改用 sqlite 中的 k/v 层（TBD： 性能测试）， 因为现有的 RocksDB 过度复杂
+5. 暂时移除 rbd 等块设备支持， 仅保留 Object Storage.
+6. 在尽可能的情况下， 引入 Rust
+
+------------------------------
 # Ceph - a scalable distributed storage system
 
 Please see http://ceph.com/ for current info.
@@ -5,7 +27,7 @@ Please see http://ceph.com/ for current info.
 
 ## Contributing Code
 
-Most of Ceph is dual licensed under the LGPL version 2.1 or 3.0.  Some
+Most of Ceph is dual licensed under the LG的的PL version 2.1 or 3.0.  Some
 miscellaneous code is under BSD-style license or is public domain.
 The documentation is licensed under Creative Commons
 Attribution Share Alike 3.0 (CC-BY-SA-3.0).  There are a handful of headers
